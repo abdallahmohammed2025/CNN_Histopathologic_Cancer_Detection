@@ -1,90 +1,88 @@
-# 🧬 Histopathologic Cancer Detection – Mini Project (Kaggle)
+# 🧬 Histopathologic Cancer Detection
 
-This project was developed as part of a weekly machine learning mini-project to detect metastatic cancer in histopathologic image patches. The task is a **binary image classification problem** hosted on [Kaggle](https://www.kaggle.com/competitions/histopathologic-cancer-detection).
+This project addresses the **Kaggle competition** [Histopathologic Cancer Detection](https://www.kaggle.com/competitions/histopathologic-cancer-detection), where the objective is to detect metastatic cancer in small patches of tissue images taken from lymph node sections.
 
----
-
-## 📌 Problem Description
-
-The goal of this challenge is to **predict the presence of metastatic cancer** in the central 32x32 pixels of 96x96px histopathologic image patches from lymph node sections.
-
-- Binary labels: `1` = tumor present, `0` = no tumor
-- Challenge: very small regions contain the relevant features, despite large input images
-- Evaluation metric: **AUC ROC**
+Using a **Convolutional Neural Network (CNN)** and transfer learning via **EfficientNetB0**, we train a binary classifier to identify cancerous tissue based on labeled histopathology images.
 
 ---
 
-## 📁 Dataset Overview
+## 📁 Dataset
 
-- **Total training images:** ~220,000
-- **Image shape:** 96x96 pixels, RGB
-- **Label file:** `train_labels.csv`
-- **Test set:** Unlabeled, to be submitted via CSV
+- **Source**: Provided by Kaggle
+- **Image size**: 96x96 RGB patches
+- **Classes**:  
+  - `0`: No tumor  
+  - `1`: Tumor present
 
-Each image is named by its hash ID, and images are stored in `train/` and `test/` directories. The **label** only reflects the center region (32x32 px), not the full patch.
-
----
-
-## 📊 Exploratory Data Analysis (EDA)
-
-Our EDA process includes:
-- Class distribution imbalance visualization (tumor vs non-tumor)
-- Sample image grid plots to visually assess differences
-- Channel-wise pixel intensity histograms
-- Data checks (duplicates, missing labels, corrupted files)
-
-Based on EDA insights, we applied:
-- Stratified sampling
-- Balanced data loaders
-- Normalization using ImageNet means/stds
+- **Files**:
+  - `train_labels.csv`: Contains image IDs and binary labels
+  - `train/`: Folder containing ~220,000 image tiles
+  - `test/`: Folder with ~57,458 unlabeled image tiles to predict
 
 ---
 
-## 🧠 Model Architectures
+## 🧠 Model Architecture
 
-We trained and compared multiple CNN architectures:
-- ✅ **Baseline CNN:** 3 conv layers + FC head
-- ✅ **Transfer Learning:** Pretrained ResNet18
-- ✅ **EfficientNetB0 (optional)**
+We used **EfficientNetB0** with pre-trained `imagenet` weights:
 
-Each model was evaluated using:
-- Train/validation AUC ROC
-- Training loss curves
-- Confusion matrix
-- ROC curves
-
-We used cross-entropy loss and Adam optimizer. For tuning:
-- Learning rate search
-- Data augmentation: flips, rotations
-- Early stopping
+- Input size: `96x96x3`
+- Base model: `EfficientNetB0 (include_top=False)`
+- Head:
+  - `GlobalAveragePooling2D`
+  - `Dropout(0.3)`
+  - `Dense(1, activation='sigmoid')`
 
 ---
 
-## 🧪 Results & Evaluation
+## 🛠️ Training Pipeline
 
-| Model        | Validation AUC | Notes                        |
-|--------------|----------------|------------------------------|
-| Simple CNN   | 0.85           | From-scratch, no pretraining |
-| ResNet18     | 0.96           | Transfer learning            |
-| EfficientNet | *optional*     | TBD                          |
-
-We observed:
-- ResNet18 significantly outperformed custom CNN
-- Data augmentation improved generalization
-- Small batch sizes stabilized training
+- Framework: TensorFlow / Keras
+- Data Augmentation: Horizontal/Vertical flips, rotations, brightness
+- Optimizer: Adam
+- Loss: Binary Crossentropy
+- Metrics: Accuracy, AUC
+- Callbacks: `EarlyStopping`, `ReduceLROnPlateau`
+- Epochs: 10 (can be adjusted)
+- Batch Size: 64
 
 ---
 
-## 🧾 Conclusion
+## 🧪 Evaluation
 
-- Transfer learning was crucial due to data size and complexity
-- AUC is a suitable metric due to class imbalance
-- Future improvements:
-  - Better augmentations (e.g., CutMix, MixUp)
-  - Label smoothing
-  - Test-time augmentation
+- Validation Accuracy: ~90–95% depending on split
+- AUC used to monitor performance
+- No data leakage — separate validation split from training
 
 ---
 
-## 📂 Project Structure
+## 📈 Results
 
+- Trained CNN achieved solid results on validation
+- Submission CSV generated with predictions for all 57,458 test images
+- Format:
+  ```csv
+  id,label
+  5e069ecb4ea52c12f80ce5a938dd1b3f,0
+  924f4e52d60cfcbbfad6a7f601fa1f45,1
+  ...
+
+
+
+## 📂 GitHub Repository
+
+You can explore the full project, notebook, and submission file in the GitHub repository:
+
+**🔗 [GitHub Repository Link](https://github.com/abdallahmohammed2025/CNN_Histopathologic_Cancer_Detection)**  
+
+The repository includes:
+
+- 📓 `Histopathologic_Cancer_Detection_Full_Notebook.ipynb`: Complete training and inference notebook  
+- 📁 `train/` and `test/`: Expected dataset structure  
+- 📝 `submission.csv`: Ready-to-submit predictions  
+- 📜 `README.md`: Full project documentation  
+- 📌 `requirements.txt`
+
+To clone the repository locally:
+
+```bash
+git clone https://github.com/abdallahmohammed2025/CNN_Histopathologic_Cancer_Detection.git
