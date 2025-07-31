@@ -67,7 +67,6 @@ We used **EfficientNetB0** with pre-trained `imagenet` weights:
   ...
 
 
-
 ## 📂 GitHub Repository
 
 You can explore the full project, notebook, and submission file in the GitHub repository:
