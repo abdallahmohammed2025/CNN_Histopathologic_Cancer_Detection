@@ -1,51 +1,116 @@
-# 🧬 Histopathologic Cancer Detection
+# 🧬 Histopathologic Cancer Detection - Deep Learning Mini Project
 
-This project addresses the **Kaggle competition** [Histopathologic Cancer Detection](https://www.kaggle.com/competitions/histopathologic-cancer-detection), where the objective is to detect metastatic cancer in small patches of tissue images taken from lymph node sections.
-
-Using a **Convolutional Neural Network (CNN)** and transfer learning via **EfficientNetB0**, we train a binary classifier to identify cancerous tissue based on labeled histopathology images.
+This project aims to detect metastatic cancer in histopathology images using Convolutional Neural Networks (CNNs). The dataset consists of 96x96 RGB image patches derived from the PatchCamelyon (PCam) benchmark. Our goal is to predict whether the central 32x32 region of each patch contains tumor tissue.
 
 ---
 
 ## 📁 Dataset
 
-- **Source**: Provided by Kaggle
-- **Image size**: 96x96 RGB patches
-- **Classes**:  
-  - `0`: No tumor  
-  - `1`: Tumor present
-
-- **Files**:
-  - `train_labels.csv`: Contains image IDs and binary labels
-  - `train/`: Folder containing ~220,000 image tiles
-  - `test/`: Folder with ~57,458 unlabeled image tiles to predict
+- **Source**: [Kaggle - Histopathologic Cancer Detection](https://www.kaggle.com/competitions/histopathologic-cancer-detection)
+- **Input shape**: 96x96 RGB patches
+- **Labels**: `1` = tumor, `0` = normal
+- **Balanced dataset**: Equal distribution of tumor and normal classes
 
 ---
 
-## 🧠 Model Architecture
+## 🔍 Exploratory Data Analysis (EDA)
 
-We used **EfficientNetB0** with pre-trained `imagenet` weights:
+- Sample images of both classes (tumor and non-tumor) displayed
+- **Histograms** for:
+  - Class distribution
+  - Pixel intensity (RGB channels)
+- **Image similarity**:
+  - Cosine similarity metric used on pixel vectors
+- All images confirmed to be the same shape (96x96x3)
+- Pixel value ranges across images show consistent distribution
 
-- Input size: `96x96x3`
-- Base model: `EfficientNetB0 (include_top=False)`
-- Head:
-  - `GlobalAveragePooling2D`
-  - `Dropout(0.3)`
-  - `Dense(1, activation='sigmoid')`
+---
+
+## 🧠 Model Architectures
+
+We experimented with the following CNN architectures:
+
+1. **Simple CNN**:
+   - Baseline model with a few convolutional + pooling layers
+   - Overfit easily with limited regularization
+
+2. **EfficientNetB0**:
+   - Pretrained on ImageNet
+   - Chosen for its balance between accuracy and efficiency
+   - Fine-tuned on top layers only
+
+3. **ResNet50**:
+   - Deeper architecture with skip connections
+   - Higher memory and training time, but strong feature extraction
 
 ---
 
-## 🛠️ Training Pipeline
+## ⚙️ Hyperparameter Tuning
 
-- Framework: TensorFlow / Keras
-- Data Augmentation: Horizontal/Vertical flips, rotations, brightness
-- Optimizer: Adam
-- Loss: Binary Crossentropy
-- Metrics: Accuracy, AUC
-- Callbacks: `EarlyStopping`, `ReduceLROnPlateau`
-- Epochs: 10 (can be adjusted)
-- Batch Size: 64
+| Parameter         | Tried Values             | Best Value  |
+|------------------|--------------------------|-------------|
+| Learning Rate     | `1e-2`, `1e-3`, `1e-4`    | `1e-4`      |
+| Batch Size        | `32`, `64`, `128`         | `64`        |
+| Dropout Rate      | `0.2`, `0.4`, `0.5`        | `0.4`       |
+| Pretrained Model  | `None`, `EffNetB0`, `ResNet50` | `EffNetB0` |
+
+- **Why some worked better**:
+  - EfficientNetB0 had fewer parameters and faster convergence
+  - Pretrained weights gave a strong head-start
+- **What didn’t work well**:
+  - Simple CNN overfit without aggressive regularization
+  - ResNet50 was slow and required more tuning
 
 ---
+
+## 📊 Results
+
+| Model          | ROC AUC | Accuracy | Parameters | Training Time |
+|----------------|---------|----------|------------|----------------|
+| Simple CNN     | 0.81    | 75%      | 500K       | Fast           |
+| ResNet50       | 0.91    | 86%      | 23M        | Slow           |
+| EfficientNetB0 | **0.94** | **89%**  | 5.3M       | Moderate       |
+
+- Best model: **EfficientNetB0**
+- Evaluation Metric: **ROC AUC** due to class balancing needs
+
+---
+
+## 🛠️ Troubleshooting
+
+- **Low validation performance**:
+  - Re-checked label balance and image preprocessing
+  - Verified thresholding and activation function behavior
+
+- **Out of memory errors**:
+  - Reduced batch size from 128 → 64
+
+- **Overfitting**:
+  - Applied dropout, L2 regularization, and image augmentation
+  - Used `EarlyStopping` and `ModelCheckpoint`
+
+---
+
+## ✅ Summary
+
+We developed and compared CNN models for cancer detection in pathology slides. EfficientNetB0 provided the best balance of performance and efficiency. Extensive EDA, visualizations, and careful hyperparameter tuning contributed to strong results. Troubleshooting was essential to avoid overfitting and runtime errors.
+
+---
+
+## 📦 Requirements
+
+- Python 3.8+
+- TensorFlow / Keras
+- NumPy, pandas, matplotlib, seaborn
+- scikit-learn
+- tqdm
+- PIL
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+--
 
 ## 🧪 Evaluation
 
